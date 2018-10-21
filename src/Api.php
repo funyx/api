@@ -13,7 +13,7 @@ class Api
     /** @var \Zend\Diactoros\Response\JsonResponse Response object */
     public $response;
 
-    /** @var \Zend\Diactoros\Response\SapiEmitter Emitter object */
+    /** @var \Zend\HttpHandlerRunner\Emitter\SapiEmitter Emitter object */
     public $emitter;
 
     /** @var string */
@@ -51,7 +51,7 @@ class Api
         }
 
         // This is how we will send responses
-        $this->emitter = new \Zend\Diactoros\Response\SapiEmitter();
+        $this->emitter = new \Zend\HttpHandlerRunner\Emitter\SapiEmitter();
     }
 
     /**
@@ -429,7 +429,7 @@ class Api
                 JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT
             );
 
-        $emitter = new \Zend\Diactoros\Response\SapiEmitter();
+        $emitter = new \Zend\HttpHandlerRunner\Emitter\SapiEmitter();
         $emitter->emit($this->response);
         exit;
     }
