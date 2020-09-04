@@ -1,32 +1,46 @@
 {
-    "name": "atk4/api",
-    "type": "library",
-    "description": "Agile API - REST API server for atk4/data",
-    "keywords": ["framework", "api", "rest", "restapi", "atk", "agile data", "data", "json", "toolkit", "agile"],
-    "homepage": "https://github.com/atk4/api",
-    "license": "MIT",
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "authors": [
-        {
-            "name": "Romans Malinovskis",
-            "email": "romans@agiletoolkit.org",
-            "homepage": "https://nearly.guru/"
-        }
-    ],
-    "require": {
-        "php": ">=7.3.0"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^9",
-        "codeclimate/php-test-reporter": "*"
-    },
-    "autoload": {
-        "psr-4": {"atk4\\api\\":"src/"}
-    },
-    "autoload-dev": {
-        "psr-4": {
-          "atk4\\api\\tests\\":"tests/"
-        }
-    }
+  "authors": [
+	{
+	  "name": "Dimitar Dobchev",
+	  "email": "ddobchev@gmail.org",
+	  "homepage": "https://funyx.me/"
+	}
+  ],
+  "autoload": {
+	"psr-4": {
+	  "funyx\\api\\": "src/"
+	}
+  },
+  "autoload-dev": {
+	"psr-4": {
+	  "funyx\\api\\tests\\": "tests/"
+	}
+  },
+  "description": "Agile API - REST API server for atk4/data",
+  "homepage": "https://github.com/funyx/api",
+  "keywords": [
+	"framework",
+	"api",
+	"rest",
+	"restapi",
+	"atk",
+	"agile data",
+	"data",
+	"json",
+	"toolkit",
+	"agile"
+  ],
+  "license": "MIT",
+  "minimum-stability": "stable",
+  "name": "atk4/api",
+  "prefer-stable": true,
+  "require": {
+	"php": ">=7.3.0",
+	"atk4/data": "^2.2"
+  },
+  "require-dev": {
+	"phpunit/phpunit": ">=9.0",
+	"codeclimate/php-test-reporter": "*"
+  },
+  "type": "library"
 }
