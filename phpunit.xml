@@ -1,24 +1,28 @@
-<phpunit colors="true" bootstrap="vendor/autoload.php" printerClass="atk4\core\PHPUnit_AgileResultPrinter">
-    <php>
-        <var name="DB_DSN" value="sqlite::memory:" />
-        <var name="DB_USER" value="travis" />
-        <var name="DB_PASSWD" value="" />
-        <var name="DB_DBNAME" value="dsql_test" />
-    </php>
-    <filter>
-        <blacklist>
-            <directory suffix=".php">./vendor</directory>
-        </blacklist>
-        <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">./src</directory>
-        </whitelist>
-    </filter>
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/6.5/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         printerClass="atk4\api\PHPUnit_AgileResultPrinter"
+         forceCoversAnnotation="true"
+         beStrictAboutCoversAnnotation="true"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutTodoAnnotatedTests="true"
+         verbose="true">
+
     <testsuites>
         <testsuite name="tests">
             <directory>tests</directory>
-            <exclude>tests/smbo/lib</exclude>
+            <exclude>./tests/ApiTester.php</exclude>
         </testsuite>
     </testsuites>
+
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">src</directory>
+            <file>ApiTester.php</file>
+        </whitelist>
+    </filter>
+
     <logging>
         <log type="coverage-clover" target="build/logs/clover.xml"/>
     </logging>
