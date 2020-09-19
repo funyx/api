@@ -16,31 +16,22 @@
 	  "funyx\\api\\tests\\": "tests/"
 	}
   },
-  "description": "Agile API - REST API server for atk4/data",
-  "homepage": "https://github.com/funyx/api",
+  "description": "simple rest api",
+  "homepage": "https://funyx.cloud/api",
   "keywords": [
-	"framework",
 	"api",
 	"rest",
-	"restapi",
-	"atk",
-	"agile data",
-	"data",
-	"json",
-	"toolkit",
-	"agile"
+	"json"
   ],
   "license": "MIT",
   "minimum-stability": "stable",
-  "name": "atk4/api",
+  "name": "funyx/api",
   "prefer-stable": true,
   "require": {
-	"php": ">=7.3.0",
-	"atk4/data": "^2.2"
+	"php": ">=7.4.0"
   },
   "require-dev": {
-	"phpunit/phpunit": ">=9.0",
-	"codeclimate/php-test-reporter": "*"
+	"phpunit/phpunit": ">=9.0"
   },
-  "type": "library"
+  "type": "project"
 }
