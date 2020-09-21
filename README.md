@@ -41,3 +41,12 @@ class Post extends \funyx\api\Model
     {}
 }
 ```
+
+test it locally with:
+```bash
+composer start
+```
+or with live reloading local server - [nodemon](https://nodemon.io/)
+```bash
+composer start-dev
+```

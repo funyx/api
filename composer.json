@@ -41,6 +41,10 @@
 	"start-dev" : [
 	  "Composer\\Config::disableProcessTimeout",
 	  "make env=dev server"
+	],
+	"start" : [
+	  "Composer\\Config::disableProcessTimeout",
+	  "make env=dev server-static"
 	]
   }
 }
