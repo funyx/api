@@ -41,12 +41,12 @@ class Post extends \funyx\api\Model
     {}
 }
 ```
-
+https://docs.konghq.com/2.1.x/getting-started/enabling-plugins/
 test it locally with:
 ```bash
 composer start
 ```
 or with live reloading local server - [nodemon](https://nodemon.io/)
 ```bash
-composer start-dev
+composer start-live
 ```

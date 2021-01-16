@@ -6,3 +6,5 @@ server:
 server-static:
 	@echo starting static server on $$HOST:$$PORT
 	php -S $$HOST:$$PORT -t=phalcon phalcon/app.php
+test:
+	./vendor/bin/phpunit
