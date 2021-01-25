@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace demo\api\Model;
 
@@ -8,31 +8,38 @@ use funyx\api\Model;
 
 class Post extends Model
 {
-    /**
-     * @var string
-     */
-    public $table = 'post';
-    public $caption = 'Post';
-    public function init(): void
-    {
-        parent::init();
-        $this->addField('content');
-        $this->addField('author');
-    }
+	public $table = 'post';
+	public $caption = 'Post';
 
-    // model should be loaded
-    public function getOne(){
-        return $this->get();
-    }
+	public function init(): void
+	{
+		parent::init();
+		$this->addField('content');
+		$this->addField('author');
+	}
 
-    public function createOne(Payload $payload)
-    {
-        return $this->save($payload->data)->get();
-    }
+	public function paginator()
+	{
+		return $this->export();
+	}
 
-    // model should be loaded
-    public function updateOne(Payload $payload)
-    {
-        return $this->save($payload->data)->get();
-    }
+	public function getOne()
+	{
+		return $this->get();
+	}
+
+	public function createOne( Payload $payload )
+	{
+		return $this->save($payload->data)->get();
+	}
+
+	public function updateOne( Payload $payload )
+	{
+		return $this->save($payload->data)->get();
+	}
+
+	public function removeOne()
+	{
+
+	}
 }

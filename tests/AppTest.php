@@ -1,14 +1,11 @@
 <?php
 
-    namespace funyx\api\tests;
+namespace funyx\api\tests;
 
-    use funyx\api\App;
-    use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestCase;
 
-    class AppTest
-        extends
-        TestCase
-    {
+class AppTest extends TestCase
+{
 
 
-    }
+}

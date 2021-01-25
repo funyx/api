@@ -1,54 +1,58 @@
 <?php
-    declare(strict_types = 1);
+declare(strict_types = 1);
 
-    namespace funyx\api;
+namespace funyx\api;
 
-    use Phalcon\Http\Response as PhalconResponse;
+use Phalcon\Http\Response as PhalconResponse;
 
-    class Response
-        extends
-        PhalconResponse
-    {
-        public function json($data)
-        {
-            $this->setStatusCode(200);
-            $this->setJsonContent([
-                'status' => 'OK',
-                'data' => $data,
-                'error' => null
-            ]);
-            $this->send();
-        }
+class Response extends PhalconResponse
+{
+	public function json( $data ): void
+	{
+		$this->setStatusCode(200);
+		$payload = [
+			'status' => 'OK',
+			'data'   => $data,
+			'error'  => null
+		];
+		ksort($payload, SORT_NATURAL);
+		$this->setJsonContent($payload);
+		$this->send();
+	}
 
-        public function notFound()
-        {
-            $this->setStatusCode(404);
-            $this->setJsonContent([
-                'status' => 'NOT_FOUND',
-                'data' => null,
-                'error' => null
-            ]);
-            $this->send();
-        }
+	public function notFound(): void
+	{
+		$this->setStatusCode(404);
+		$payload = [
+			'status' => 'NOT_FOUND',
+			'data'   => null,
+			'error'  => null
+		];
+		ksort($payload, SORT_NATURAL);
+		$this->setJsonContent($payload);
+		$this->send();
+	}
 
-        public function notImplemented()
-        {
-            $this->error(['api' => 'Not implemented']);
-        }
+	public function notImplemented(): void
+	{
+		$this->error(['api' => 'Not implemented']);
+	}
 
-        /**
-         * @param array|null $dictionary - [err::class = err->getMessage ]
-         * @param int        $code
-         * @param string     $msg
-         */
-        public function error(array $dictionary = null, int $code = 500, string $msg = 'ERROR')
-        {
-            $this->setStatusCode($code);
-            $this->setJsonContent([
-                'status' => $msg,
-                'data' => null,
-                'error' => $dictionary
-            ]);
-            $this->send();
-        }
-    }
+	/**
+	 * @param array|null $dictionary - [err::class = err->getMessage ]
+	 * @param int        $code
+	 * @param string     $msg
+	 */
+	public function error( array $dictionary = null, int $code = 500, string $msg = 'ERROR' ): void
+	{
+		$this->setStatusCode($code);
+		$payload = [
+			'status' => $msg,
+			'data'   => null,
+			'error'  => $dictionary
+		];
+		ksort($payload, SORT_NATURAL);
+		$this->setJsonContent($payload);
+		$this->send();
+	}
+}

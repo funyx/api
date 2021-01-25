@@ -1,7 +1,8 @@
 <?php
-    declare(strict_types = 1);
+declare(strict_types = 1);
 
-    namespace funyx\api;
+namespace funyx\api;
 
-    class Exception extends \atk4\data\Exception
-    {}
+class Exception extends \atk4\data\Exception
+{
+}

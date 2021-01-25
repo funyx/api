@@ -1,129 +1,115 @@
 <?php
 
-    namespace funyx\api;
+namespace funyx\api;
 
-    use atk4\data\Persistence;
-    use Phalcon\Http\Request;
-    use Phalcon\Logger;
-    use ReflectionMethod;
+use atk4\data\Persistence;
+use DateTime;
+use funyx\api\Data\AccountUser;
+use Phalcon\Http\Request;
+use Phalcon\Mvc\Router\RouteInterface;
 
-    class Model
-        extends
-        \atk4\data\Model
-    {
-        /**
-         * @var \funyx\api\App
-         */
-        protected App $app;
-        protected Logger $logger;
+class Model extends \atk4\data\Model
+{
+	public string $datetime_format = \DateTime::ATOM;
+	/**
+	 * @var \funyx\api\App
+	 */
+	protected App $app;
+	protected RouteInterface $route;
+	/**
+	 * @var mixed
+	 */
+	protected Request $request;
+	/**
+	 * @var bool $has_created_at
+	 */
+	protected bool $has_created_at = false;
+	/**
+	 * @var bool $has_updated_at
+	 */
+	protected bool $has_updated_at = false;
 
-        public string $api_id_field = '';
+	public function __construct( $persistence = null, $defaults = [] )
+	{
 
-        public function __construct($persistence = null, $defaults = [])
-        {
-            $this->app = $GLOBALS['app'];
-            /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
-            $this->logger = $this->app->getService('logger');
-            parent::__construct($persistence, $defaults);
-            $this->api_id_field = $this->id_field;
-        }
+		$this->app = $GLOBALS['app'];
+		$this->route = $this->app->getRouter()->getMatchedRoute();
+		$this->request = $this->app->getSharedService('request');
 
-        public function fnInjector(string $fn_name, $id)
-        {
-            if (is_null($this->persistence)) {
-                $this->persistence = Persistence::connect(getenv('DEFAULT_PERSISTENCE'));
-            }
-            $params = (new ReflectionMethod($this, $fn_name))->getParameters();
-            $args = [];
-            if (count($params)) {
-                foreach ($params as $p) {
-                    if ($p->hasType()) {
-                        if ($pc = $p->getClass()) {
-                            // handle mapper injection
-                            $c = $pc->getName();
-                            $r = null; // request cache
-                            if (is_a($c, \funyx\api\Mapper::class, true)) {
-                                $args[$p->getPosition()] = new $c(
-                                    $this->app,
-                                    $this->logger,
-                                    $r ?? $r = new Request()
-                                );
-                            }
-                            // handle authorization injection
-                            if (is_a($c, \funyx\api\Auth::class, true)) {
-                                $args[$p->getPosition()] = new $c(
-                                    $this->app,
-                                    $this->logger,
-                                    $r ?? $r = new Request()
-                                );
-                            }
-                        }
-                    }
-                }
-            }
-            if(!$this->_initialized){
-                $this->init();
-            }
-            if(in_array($fn_name,['updateOne', 'getOne', 'removeOne'])){
-                $this->loadBy($this->api_id_field,$id);
-            }
-            $return = $this->$fn_name(...$args);
-            if ( !is_a($return, Response::class)) {
-                (new Response())->json($return);
-            } else {
-                $return->json($return);
-            }
-            $GLOBALS['app']->getService('logger')
-                ->info(json_encode(['response' => $return]));
-        }
+		$action = $this->route->getPaths()['action'];
+		$class = $this->route->getPaths()['class'];
+		if (get_class($this) === $class && !method_exists($this, $action)) {
+			throw new Exception(get_class($this).' has no action '.$action);
+		}
+		if (is_null($this->persistence) && is_null($persistence)) {
+			$this->persistence = Persistence::connect(getenv('DEFAULT_PERSISTENCE'));
+			// init
+			$this->init();
+		}
+		parent::__construct($persistence, $defaults);
+		if ($this->has_created_at) {
+			$this->addCreatedAt();
+		}
+		if ($this->has_updated_at) {
+			$this->addUpdatedAt();
+			$this->onHook('beforeUpdate', function ( Model $m )
+			{
+				if ($m->hasField('updated_at')) {
+					$m['updated_at'] = new DateTime();
+				}
+			});
+		}
+	}
 
-        public function paginatorHandler()
-        {
-            if ( !method_exists($this, 'paginator')) {
-                $GLOBALS['app']->getService('logger')
-                    ->error(json_encode(['api' => 'Not implemented']));
-                return (new Response())->notImplemented();
-            }
-            return $this->fnInjector('paginator');
-        }
+	public function addCreatedAt()
+	{
+		$this->addField('created_at', [
+			'type'     => 'datetime',
+			'system'   => true,
+			'required' => true,
+			'default'  => new DateTime
+		]);
+	}
 
-        public function createOneHandler()
-        {
-            if ( !method_exists($this, 'createOne')) {
-                $GLOBALS['app']->getService('logger')
-                    ->error(json_encode(['api' => 'Not implemented']));
-                return (new Response())->notImplemented();
-            }
-            return $this->fnInjector('createOne');
-        }
+	public function addUpdatedAt()
+	{
+		$this->addField('updated_at', [
+			'type'     => 'datetime',
+			'system'   => true,
+			'required' => true
+		]);
+	}
 
-        public function getOneHandler($id)
-        {
-            if ( !method_exists($this, 'getOne')) {
-                $GLOBALS['app']->getService('logger')
-                    ->error(json_encode(['api' => 'Not implemented']));
-                return (new Response())->notImplemented();
-            }
-            return $this->fnInjector('getOne', $id);
-        }
+	public function format(): array
+	{
+		$data = [];
+		foreach ($this->getFields() as $f) {
+			$value = $f->get();
+			if (is_a($value, $f->dateTimeClass)) {
+				$value = $value->format($this->datetime_format);
+			}
+			$data[$f->short_name] = $value;
+		}
+		return $data;
+	}
 
-        public function updateOneHandler($id)
-        {
-            if ( !method_exists($this, 'updateOne')) {
-                $GLOBALS['app']->getService('logger')
-                    ->error(json_encode(['api' => 'Not implemented']));
-                return (new Response())->notImplemented();
-            }
-            return $this->fnInjector('updateOne', $id);
-        }
-
-        public function removeOneHandler($id)
-        {
-            if ( !method_exists($this, 'removeOne')) {
-                $GLOBALS['app']->getService('logger')
-                    ->error(json_encode(['api' => 'Not implemented']));
-                return (new Response())->notImplemented();
-            }
-            return $this->fnInjector('removeOne', $id);
-        }
-    }
+	public function auth( $autoload_account_user_model = false )
+	{
+		$auth = $this->app->getSharedService('authorize');
+		// TODO check token
+		if ($autoload_account_user_model) {
+			if(!isset($auth['model'])){
+				$au = (new AccountUser($this->persistence))
+					->tryLoad($auth['id']);
+				if($au->loaded()){
+					$auth['model'] = $au;
+					// update the service
+					$this->app->setService('authorize', function() use ($auth){
+						return $auth;
+					}, true);
+				}
+			}
+		}
+		return $auth;
+	}
+}

@@ -9,9 +9,30 @@ Requirements :
 
 
 ```php
-$app = new \funyx\api\App();
-$posts = new \funyx\api\Collection('posts', \your\atk4\model\Post::class);
-$app->mount($posts);
+$app = new \funyx\api\App([
+	'authorization' => [
+		'strategy' => 'jwt',
+		'secret' => 'my-secret'
+	],
+	'database' => [
+		'dsn' => 'sqlite:.personal_data/data.sqlite3'
+	],
+	'mws' => [
+		[Authorization\JWT::class, 'event' => 'before'],
+		[RequestMiddleware::class, 'event' => 'before'],
+		[ResponseMiddleware::class, 'event' => 'after']
+	],
+	'routes' => [
+		['POST', '/auth/register' , Auth::class.'::register'],
+		['POST', '/auth/login' , Auth::class.'::login'],
+		['POST', '/auth/me' , Auth::class.'::getMe'],
+		['GET', '/posts' , Post::class.'::paginator'],
+		['POST', '/post' , Post::class.'::createOne'],
+		['GET', '/post/{:id}' , Post::class.'::getOne'],
+		['PUT', '/post/{:id}' , Post::class.'::updateOne'],
+		['DELETE', '/post/{:id}' , Post::class.'::deleteOne']
+	]
+]);
 $app->handle($_SERVER["REQUEST_URI"]);
 ```
 in your model
@@ -41,7 +62,7 @@ class Post extends \funyx\api\Model
     {}
 }
 ```
-https://docs.konghq.com/2.1.x/getting-started/enabling-plugins/
+
 test it locally with:
 ```bash
 composer start
@@ -50,3 +71,12 @@ or with live reloading local server - [nodemon](https://nodemon.io/)
 ```bash
 composer start-live
 ```
+
+# links
+- [x] https://docs.konghq.com/2.1.x/getting-started/enabling-plugins/
+
+# todo 
+- [ ] implement authorisation middleware
+- [ ] implement user token table and check in the middleware for blacklisted tokens
+- [ ] implement user roles
+- [ ] implement user permissions

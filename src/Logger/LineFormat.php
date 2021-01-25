@@ -5,6 +5,7 @@ namespace funyx\api\Logger;
 
 
 use Phalcon\Logger\Formatter\AbstractFormatter;
+use Phalcon\Logger\Item;
 
 class LineFormat extends AbstractFormatter
 {
@@ -23,7 +24,7 @@ class LineFormat extends AbstractFormatter
         $this->uid = $uid;
     }
 
-    public function format( \Phalcon\Logger\Item $item ): string
+    public function format( Item $item ): string
     {
         $s = '['.$this->getFormattedDate().']';
 	    $s .= ' ['.$_SERVER['REMOTE_ADDR'].']:'.$_SERVER['REMOTE_PORT'];
