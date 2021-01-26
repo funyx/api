@@ -1,3 +1,5 @@
+![PHP Composer](https://github.com/funyx/api/workflows/PHP%20Composer/badge.svg?branch=develop)
+
 Simple rest API using :
 * [atk4/data](https://github.com/atk4/data)
 * [Phalcon Micro](https://docs.phalcon.io/4.0/en/application-micro)
