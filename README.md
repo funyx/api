@@ -50,31 +50,6 @@ $app = new \funyx\api\App([
 			'GET',
 			'/auth/me',
 			AccountUserAuth::class.'::getMe'
-		],
-		[
-			'GET',
-			'/posts',
-			Post::class.'::paginator'
-		],
-		[
-			'POST',
-			'/post',
-			Post::class.'::createOne'
-		],
-		[
-			'GET',
-			'/post/{:id}',
-			Post::class.'::getOne'
-		],
-		[
-			'PUT',
-			'/post/{:id}',
-			Post::class.'::updateOne'
-		],
-		[
-			'DELETE',
-			'/post/{:id}',
-			Post::class.'::deleteOne'
 		]
 	]
 ]);
