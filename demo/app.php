@@ -1,6 +1,6 @@
 <?php
 
-use demo\api\Model\Post;
+use demo\api\Post;
 use funyx\api\App;
 use funyx\api\Data\AccountUser\AccountUserAuth;
 use funyx\api\Middleware\Authorization;
@@ -14,7 +14,7 @@ $app = new App([
 		'jwt' => [
 			'secret' => 'my-secret',
 			'algorithm' => ['HS256'],
-			'valid_for' => '+ 10 minutes',
+			'valid_for' => '+ 30 minutes',
 //			'valid_after' => '+ 1 minute'
 		]
 	],
@@ -54,7 +54,7 @@ $app = new App([
 		[
 			'GET',
 			'/posts',
-			Post::class.'::paginator'
+			Post::class.'::filterList'
 		],
 		[
 			'POST',
@@ -63,17 +63,17 @@ $app = new App([
 		],
 		[
 			'GET',
-			'/post/{:id}',
+			'/post/{id}',
 			Post::class.'::getOne'
 		],
 		[
 			'PUT',
-			'/post/{:id}',
+			'/post/{id}',
 			Post::class.'::updateOne'
 		],
 		[
 			'DELETE',
-			'/post/{:id}',
+			'/post/{id}',
 			Post::class.'::deleteOne'
 		]
 	]

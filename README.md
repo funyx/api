@@ -69,7 +69,11 @@ composer start-live
 - [x] https://docs.konghq.com/2.1.x/getting-started/enabling-plugins/
 
 # todo 
-- [ ] implement authorisation middleware
+- [x] implement authorisation middleware
+- [x] implement response management /set status code, msg, etc./
+- [ ] implement model listFilter
+  - request middleware (q=query f=fields targeted by query l=limit id=last_id o=a(sc)/d(esc))
+  - response middleware 
 - [ ] implement user token table and check in the middleware for blacklisted tokens
 - [ ] implement user roles
 - [ ] implement user permissions

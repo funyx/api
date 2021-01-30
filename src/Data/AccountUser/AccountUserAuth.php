@@ -10,7 +10,7 @@ use funyx\api\Exception;
 
 class AccountUserAuth extends AccountUser
 {
-	public function init(): void
+	protected function init(): void
 	{
 		parent::init();
 
@@ -22,14 +22,14 @@ class AccountUserAuth extends AccountUser
 
 	public function register(): array
 	{
-		$this->save($this->request->getJsonRawBody(true));
+		$this->save($this->body());
 		return $this->publicUserData();
 	}
 
 	public function login(): array
 	{
-		$req = $this->request->getJsonRawBody(true);
-		$this->tryLoadByUsernameAndPassword($req['username'],$req['password']);
+		$req = $this->req->getJsonRawBody(true);
+		$this->tryLoadByUsernameAndPassword($this->body('username'),$this->body('password'));
 		if(!$this->loaded()){
 			throw new Exception('Wrong credentials');
 		}

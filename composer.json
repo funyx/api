@@ -9,7 +9,7 @@
   "autoload": {
 	"psr-4": {
 	  "funyx\\api\\": "src/",
-	  "demo\\api\\": "phalcon/app/"
+	  "demo\\api\\": "demo/app/"
 	}
   },
   "autoload-dev": {

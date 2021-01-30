@@ -8,12 +8,12 @@ use Phalcon\Mvc\Micro\MiddlewareInterface;
 class Middleware implements MiddlewareInterface
 {
 	/**
-	 * @param \Phalcon\Mvc\Micro $application
+	 * @param \Phalcon\Mvc\Micro $app
 	 *
 	 * @return \Phalcon\Mvc\Micro
 	 */
-	public function call( Micro $application ): Micro
+	public function call( Micro $app ): Micro
 	{
-		return $application;
+		return $app;
 	}
 }

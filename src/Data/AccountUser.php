@@ -11,10 +11,17 @@ class AccountUser extends Model
 	public $table = 'account_user';
 	public $caption = 'Account User';
 
+	public array $data_map = [
+		'username',
+		'email',
+		'created_at',
+		'updated_at'
+	];
+
 	protected bool $has_created_at = true;
 	protected bool $has_updated_at = true;
 
-	public function init(): void
+	protected function init(): void
 	{
 		parent::init();
 
@@ -39,7 +46,7 @@ class AccountUser extends Model
 		});
 	}
 
-	protected function publicUserData( array $extra = [] ): array
+	public function publicUserData( array $extra = [] ): array
 	{
 		$user = $this->format();
 		$user = array_merge_recursive($user, $extra);

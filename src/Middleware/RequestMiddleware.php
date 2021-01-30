@@ -20,6 +20,23 @@ class RequestMiddleware extends Middleware
 	 */
 	public function beforeExecuteRoute( Event $event, Micro $application ): bool
 	{
+
+		$q = $application->request->getQuery();
+		$map = [];
+		if (isset($q['data'])) {
+			foreach (explode(',', $q['data']) as $field) {
+				$value = $this->parseDotedString($field);
+				if (is_string($value)) {
+					$map[] = $value;
+				} elseif (is_array($value)) {
+					$map = array_merge_recursive($map, $value);
+				}
+			}
+			if(!empty($map)){
+				$application->request->data_map = $map;
+			}
+		}
+
 		$body = $application->request->getRawBody();
 
 		if (empty($body)) {
@@ -34,5 +51,16 @@ class RequestMiddleware extends Middleware
 
 		return true;
 
+	}
+
+	private function parseDotedString(string $str): array
+	{
+		$check = explode('.', $str, 2);
+		if (count($check)===2) {
+			$value[$check[0]] = $this->parseDotedString($check[1]);
+		}else{
+			$value = [$check[0]];
+		}
+		return $value;
 	}
 }

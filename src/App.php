@@ -4,6 +4,8 @@ declare(strict_types = 1);
 namespace funyx\api;
 
 use atk4\data\Persistence;
+use atk4\dsql\ExecuteException;
+use Firebase\JWT\ExpiredException;
 use Phalcon\Config;
 use Phalcon\Di;
 use Phalcon\Events\Manager;
@@ -28,6 +30,9 @@ class App extends Micro
 		}
 		if ( !$di->has('db')) {
 			$di->set('db', Persistence::class, true);
+		}
+		if ( !$di->has('auth')) {
+			$di->set('auth', Auth::class, true);
 		}
 
 		$eventsManager = new Manager();
@@ -125,7 +130,7 @@ class App extends Micro
 			parent::handle($uri);
 		} catch (\Exception $e) {
 			if (is_null($this->activeHandler)) {
-				return (new Response())->notFound();
+				$this->response->notFound();
 			}
 			$this->handleError($e);
 		}
@@ -150,26 +155,45 @@ class App extends Micro
 					case 'Field is not defined in model':
 						$error_data = ['api' => 'Field "'.$p['field'].'" is not available in model "'.$p['model']->caption.'"'];
 						$this->getService('logger')->error('RES : '.json_encode($error_data));
-						(new Response())->error($error_data);
+						$this->response->error($error_data);
 						die();
 						break;
 				endswitch;
 				switch ($e->getCode()):
 					case 404:
 						$this->getService('logger')->error('Not Found');
-						(new Response())->notFound();
+						$this->response->notFound();
 						die();
 						break;
 				endswitch;
 				$error_data = $e->getMyTrace();
 				break;
-			case \atk4\dsql\ExecuteException::class:
-				$error_data = ['dsql' => $e->getParams()['error']];
+			case ExecuteException::class:
+				$error_data = ["dsql" => $e->getParams()['error']];
 				$this->getService('logger')->error('RES : '.json_encode($error_data));
 				break;
 			case \Phalcon\Mvc\Micro\Exception::class:
 				$this->getService('logger')->error('RES : '."\n".$e->getTraceAsString());
-				$error_data = ['api' => $e->getMessage()];
+				$error_data = ["api" => $e->getMessage()];
+				break;
+			case ExpiredException::class:
+				$error_data = ['auth' => 'Expired JWT Token'];
+				$this->getService('logger')->error('RES : '.json_encode($error_data));
+				break;
+			case Exception::class:
+				switch ($e->getCode()):
+					case 401:
+						$error_data = [
+							'auth' => 'Unauthorized'
+						];
+						break;
+					default:
+						$error_data = [
+							get_class($e) => $e->getMessage()
+						];
+						break;
+				endswitch;
+				$this->getService('logger')->error('RES : '.json_encode($error_data));
 				break;
 			default :
 				$error_data = [
@@ -177,17 +201,9 @@ class App extends Micro
 				];
 				$this->getService('logger')->error('RES : '.json_encode($error_data));
 		}
-		(new Response())->error($error_data);
+		if(!$this->response->isSent()){
+			$this->response->error($error_data);
+		}
 		die();
-	}
-
-	/**
-	 * @param \Phalcon\Mvc\Micro\CollectionInterface $collection
-	 *
-	 * @return \Phalcon\Mvc\Micro
-	 */
-	public function mount( Micro\CollectionInterface $collection ): Micro
-	{
-		return parent::mount($collection);
 	}
 }

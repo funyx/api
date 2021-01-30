@@ -1,10 +1,9 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace funyx\api\Middleware;
 
 use funyx\api\Middleware;
-use funyx\api\Response;
 use Phalcon\Mvc\Micro;
 
 class ResponseMiddleware extends Middleware
@@ -14,9 +13,16 @@ class ResponseMiddleware extends Middleware
 	 *
 	 * @return \Phalcon\Mvc\Micro
 	 */
-	public function call(Micro $application): Micro
+	public function call( Micro $application ): Micro
 	{
-		(new Response())->json($application->getReturnedValue());
+		if ($application->response && !$application->response->isSent()) {
+			if (empty($application->response->getContent())) {
+				$returned = $application->getReturnedValue();
+				ksort($returned);
+				$application->response->setJsonContent($returned);
+			}
+			$application->response->send();
+		}
 
 		return $application;
 	}

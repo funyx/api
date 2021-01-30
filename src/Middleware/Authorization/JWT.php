@@ -4,39 +4,48 @@ declare(strict_types = 1);
 namespace funyx\api\Middleware\Authorization;
 
 use Firebase\JWT\JWT as FirebaseJWT;
+use funyx\api\Data\AccountUser\AccountUserAuth;
 use funyx\api\Exception;
 use funyx\api\Middleware\Authorization;
 
 class JWT extends Authorization
 {
-	protected function loadConfig():void
+	public string $strategy_id = 'jwt';
+
+	protected string $token;
+	protected array $data = [];
+
+	public function init(): void
 	{
-		parent::loadConfig();
-		if(!$this->config->get('jwt')){
-			throw new Exception('Set `jwt` authorization configuration');
-		}
-		$this->config = $this->config->get('jwt');
-	}
-	public function authorize( $service_data = null ): void
-	{
-		$req = $this->application->getService('request');
-		if ($req->hasHeader('Authorization')) {
+		if ($this->app->request->hasHeader('Authorization')) {
 			[
 				$prefix,
 				$token
-			] = explode(' ', $req->getHeader('Authorization'));
+			] = explode(' ', $this->app->request->getHeader('Authorization'));
 			if ( !empty($token)) {
-				try {
-					$service_data = json_decode(json_encode(FirebaseJWT::decode(
-						$token,
-						$this->config->get('secret'),
-						$this->config->get('algorithm')->getValues()
-					)), true);
-				} catch (\Exception $e) {
-					throw new Exception($e->getMessage());
-				}
+				$this->token = $token;
+				$this->data = json_decode(json_encode(FirebaseJWT::decode($token, $this->config->get('secret'),
+					$this->config->get('algorithm')->getValues())), true);
 			}
 		}
-		parent::authorize($service_data);
+		// TODO check query for access_token
+
+		// TODO check body for access_token
+	}
+
+	public function useModel(AccountUserAuth &$m)
+	{
+		if(!empty($this->data) && isset($this->data['id'])){
+			$m->tryLoad($this->data['id']);
+		}
+	}
+
+	protected function setConfig(): void
+	{
+		parent::setConfig();
+		if ( !$this->config->get('jwt')) {
+			throw new Exception('Set `jwt` authorization configuration');
+		}
+		$this->config = $this->config->get('jwt');
 	}
 }

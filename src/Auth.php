@@ -3,48 +3,58 @@ declare(strict_types = 1);
 
 namespace funyx\api;
 
-use atk4\data\Model;
-use Phalcon\Http\Request;
-use Phalcon\Logger;
+use funyx\api\Data\AccountUser\AccountUserAuth;
+use funyx\api\Middleware\Authorization;
+use Phalcon\Di\AbstractInjectionAware;
 
-/**
- * @method doAuth()
- */
-class Auth
+class Auth extends AbstractInjectionAware
 {
-	/**
-	 * @var \atk4\data\Model
-	 */
-	public Model $user;
-	/**
-	 * @var \funyx\api\App
-	 */
-	protected App $app;
-	/**
-	 * @var \Phalcon\Logger
-	 */
-	protected Logger $logger;
-	/**
-	 * @var \Phalcon\Http\Request
-	 */
-	protected Request $request;
+	protected AccountUserAuth $model;
+	protected Authorization $strategy;
+	protected string $strategy_id;
+	protected array $data_map = ['iat','exp'];
 
-	/**
-	 * Authorization is http-headers based algorithm so pass all the headers to
-	 * the `doAuth` method IF requested
-	 *
-	 * @param \funyx\api\App        $app
-	 * @param \Phalcon\Logger       $logger
-	 * @param \Phalcon\Http\Request $request
-	 */
-	public function __construct( App $app, Logger $logger, Request $request )
+	public function setProvider( string $strategy_id, Authorization $instance ): void
 	{
-		$this->app = $app;
-		$this->logger = $logger;
-		$this->request = $request;
-		if ( !method_exists($this, 'doAuth')) {
-			$logger->error('Authorization ('.get_class($this).') must implement protected function doAuth');
+		$this->strategy_id = $strategy_id;
+		$this->strategy = $instance;
+		// check if the payload is ok
+		$this->strategy->init();
+		// auto-load persistence
+		$db = $this->container->getService('db');
+		if ($db && !$db->isResolved()) {
+			$c = $this->container->getShared('config');
+			$this->container->setShared('db', $db->getDefinition()::connect($c->get('database')->get('dsn')));
 		}
-		$this->user = $this->doAuth();
+		// set model
+		$this->setModel(new AccountUserAuth($this->container->getShared('db')));
+		$this->strategy->useModel($this->model);
+	}
+
+	public function getModel(): AccountUserAuth
+	{
+		return $this->model;
+	}
+
+	public function setModel( AccountUserAuth $model ): void
+	{
+		$this->model = $model;
+	}
+
+	public function getData(): array
+	{
+		if ($this->getModel()->loaded()) {
+			return $this->model->publicUserData([
+				$this->strategy_id => array_filter(
+					$this->strategy->getData(),
+					function($v){
+						return in_array($v, $this->data_map);
+					},
+					ARRAY_FILTER_USE_KEY
+				)
+			]);
+		} else {
+			return [];
+		}
 	}
 }

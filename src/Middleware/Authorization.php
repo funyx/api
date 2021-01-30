@@ -15,43 +15,42 @@ class Authorization extends Middleware
 	/**
 	 * @var App
 	 */
-	public $application;
+	public $app;
 	/**
 	 * @var \Phalcon\Config
 	 */
 	public Config $config;
 
+	public string $strategy_id;
+	protected array $data;
+
 	/**
 	 * @param \Phalcon\Events\Event $event
-	 * @param \Phalcon\Mvc\Micro    $application
+	 * @param \Phalcon\Mvc\Micro    $app
 	 *
 	 * @return bool
 	 * @throws \funyx\api\Exception
 	 */
-	public function beforeExecuteRoute( Event $event, Micro $application ): bool
+	public function beforeExecuteRoute( Event $event, Micro $app ): bool
 	{
-		if(is_a($application, App::class)){
-			$this->application = $application;
+		if(is_a($app, App::class)){
+			$this->app = $app;
 		}
-		$this->loadConfig();
-		$this->authorize();
+		$this->setConfig();
+		$this->app->auth->setProvider($this->strategy_id, $this);
 		return true;
 	}
 
-	public function authorize($service_data = null): void
+	protected function setConfig():void
 	{
-		$this->application->setService('authorize', function() use ($service_data){
-			return $service_data;
-		}, true);
-	}
-
-	protected function loadConfig():void
-	{
-		$config = $this->application->getSharedService('config');
-		if(!$config->get('authorization')){
+		if(!$this->app->config->get('authorization')){
 			throw new Exception('Set authorization configuration');
 		}
-		$this->config = $config->get('authorization');
+		$this->config = $this->app->config->get('authorization');
 	}
 
+	public function getData():array
+	{
+		return $this->data;
+	}
 }
