@@ -8,11 +8,6 @@ use Phalcon\Http\ResponseInterface;
 
 class Response extends PhalconResponse
 {
-	public function json( $data ): ResponseInterface
-	{
-		return $this->setJsonContent($data);
-	}
-
 	public function notFound(): void
 	{
 		$this->setStatusCode(404);
@@ -24,6 +19,26 @@ class Response extends PhalconResponse
 		ksort($payload, SORT_NATURAL);
 		$this->json($payload);
 		$this->send();
+	}
+
+	public function json( $data ): ResponseInterface
+	{
+		return $this->setJsonContent($data);
+	}
+
+	public function setJsonContent( $content, int $jsonOptions = 0, int $depth = 512 ): ResponseInterface
+	{
+		$status = 'OK';
+		if ( !empty($this->getReasonPhrase())) {
+			$status = str_replace(' ', '_', strtoupper($this->getReasonPhrase()));
+		}
+		$content = [
+			'status' => $status,
+			'data'   => $content,
+			'error'  => null
+		];
+		ksort($content, SORT_NATURAL);
+		return parent::setJsonContent($content, $jsonOptions, $depth);
 	}
 
 	public function notImplemented(): void
@@ -46,23 +61,14 @@ class Response extends PhalconResponse
 		];
 		ksort($payload, SORT_NATURAL);
 		// flip slashes
-		$payload = str_replace('\\\\','/',json_encode($payload,JSON_UNESCAPED_SLASHES));
+		$payload = str_replace('\\\\', '/', json_encode($payload, JSON_UNESCAPED_SLASHES));
 		parent::setContent($payload);
-		$this->setHeader('Content-Type','application/json; charset=UTF-8');
+		$this->setHeader('Content-Type', 'application/json; charset=UTF-8');
 		$this->send();
 	}
 
-	public function setJsonContent( $content, int $jsonOptions = 0, int $depth = 512 ): ResponseInterface
+	public function rawJson( $content, int $jsonOptions = 0, int $depth = 512 ): ResponseInterface
 	{
-		$status = 'OK';
-		if(!empty($this->getReasonPhrase())){
-			$status = str_replace(' ','_',strtoupper($this->getReasonPhrase()));
-		}
-		$content = [
-			'status' => $status,
-			'data'   => $content,
-			'error'  => null
-		];
 		ksort($content, SORT_NATURAL);
 		return parent::setJsonContent($content, $jsonOptions, $depth);
 	}

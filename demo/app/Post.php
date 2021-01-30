@@ -9,6 +9,7 @@ class Post extends Model
 {
 	public $table = 'post';
 	public $caption = 'Post';
+	public $title_field = 'content';
 	public array $data_map = [
 		'id',
 		'content',
@@ -31,12 +32,9 @@ class Post extends Model
 	protected bool $has_created_at = true;
 	protected bool $has_updated_at = true;
 
-	public function filterList()
+	public function filterList(): void
 	{
-		return $this->export([
-			'user_id',
-			'content'
-		], 'id');
+		parent::filterList();
 	}
 
 	/**

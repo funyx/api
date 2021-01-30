@@ -18,7 +18,9 @@ class ResponseMiddleware extends Middleware
 		if ($application->response && !$application->response->isSent()) {
 			if (empty($application->response->getContent())) {
 				$returned = $application->getReturnedValue();
-				ksort($returned);
+				if($returned){
+					ksort($returned);
+				}
 				$application->response->setJsonContent($returned);
 			}
 			$application->response->send();

@@ -73,9 +73,9 @@ composer start-live
 # todo 
 - [x] implement authorisation middleware
 - [x] implement response management /set status code, msg, etc./
-- [ ] implement model listFilter
-  - request middleware (q=query f=fields targeted by query l=limit id=last_id o=a(sc)/d(esc))
-  - response middleware 
+- [x] implement model listFilter
+  - [x] request middleware (q=query f=fields targeted by query l=limit id=last_id o=a(sc)/d(esc))
+  - [x] response middleware 
 - [ ] implement user token table and check in the middleware for blacklisted tokens
 - [ ] implement user roles
 - [ ] implement user permissions

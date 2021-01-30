@@ -5,6 +5,8 @@ namespace funyx\api;
 use atk4\data\Model as atkModel;
 use atk4\data\Reference\HasOne;
 use DateTime;
+use Phalcon\Filter\Sanitize\AbsInt;
+use Phalcon\Filter\Sanitize\StringVal;
 use Phalcon\Http\RequestInterface;
 use Phalcon\Mvc\Router\RouteInterface;
 use Phalcon\Mvc\RouterInterface;
@@ -30,6 +32,11 @@ class Model extends atkModel
 	 * @var array
 	 */
 	protected array $payload;
+	protected int $list_setup_size = 10;
+	protected array $list_state = [];
+	protected array $list_setup_order = [];
+	protected array $list_setup_query_fields = [];
+	protected string $list_setup_key_field;
 
 	public function __construct( $persistence = null, $defaults = [] )
 	{
@@ -51,6 +58,11 @@ class Model extends atkModel
 			if (property_exists($this->req, 'data_map')) {
 				$this->data_map = $this->req->data_map;
 			}
+			if (empty($this->list_setup_key_field)) {
+				$this->list_setup_key_field = $this->id_field;
+			}
+			$this->listSetupOrder();
+			$this->listSetup();
 		}
 		if (is_null($this->persistence) && is_null($persistence)) {
 			$db = $s = $this->app->getDI()->getService('db');
@@ -74,6 +86,54 @@ class Model extends atkModel
 				}
 			});
 		}
+	}
+
+	private function listSetupOrder(): array
+	{
+		$this->list_setup_order = [$this->id_field => 'asc'];
+		$order = $this->req->getQuery('order', StringVal::class, $this->list_setup_order);
+		if (is_string($order)) {
+			$parsed_o = [];
+			$order = explode(',', $order);
+			foreach ($order as $v) {
+				$check = explode('.', $v, 2);
+				if (count($check) === 2) {
+					[
+						$key,
+						$value
+					] = $check;
+					if (in_array(strtolower($value), [
+						'asc',
+						'desc'
+					])) {
+						$parsed_o[$key] = strtolower($value);
+					}
+				}
+			}
+			$order = array_filter($parsed_o);
+		}
+		return $order;
+	}
+
+	private function listSetup()
+	{
+		$this->list_state = array_filter([
+			'size'         => $this->req->getQuery('size', AbsInt::class, $this->list_setup_size),
+			'after'        => $this->req->getQuery('after', StringVal::class, null),
+			'query'        => $this->req->getQuery('query', StringVal::class, null),
+			'query_fields' => $this->listSetupQueryFields(),
+			'order'        => $this->listSetupOrder()
+		]);
+	}
+
+	private function listSetupQueryFields(): array
+	{
+		$this->list_setup_query_fields = [$this->title_field];
+		$fields = $this->req->getQuery('query_fields', StringVal::class, $this->list_setup_query_fields);
+		if (is_string($fields)) {
+			$fields = array_filter(explode(',', $fields));
+		}
+		return $fields;
 	}
 
 	public function addCreatedAt()
@@ -137,7 +197,7 @@ class Model extends atkModel
 			}
 		} else {
 			foreach ($this->getIterator() as $record) {
-				$data[] = $record->format();
+				$data[$record->get($this->list_setup_key_field)] = $record->format();
 			}
 		}
 		ksort($data);
@@ -206,5 +266,32 @@ class Model extends atkModel
 	public function updateOne( array $data ): void
 	{
 		$this->res->status(200, 'OK')->json($data);
+	}
+
+	public function filterList(): void
+	{
+		$this->setLimit($this->list_state['size']);
+		if (isset($this->list_state['query'])) {
+			foreach ($this->list_state['query_fields'] as $field) {
+				if ($this->hasField($field)) {
+					$this->addCondition($field, 'like', '%'.$this->list_state['query'].'%');
+				}
+			}
+		}
+		foreach ($this->list_state['order'] as $field => $order) {
+			$this->setOrder($field, $order);
+		}
+		if (isset($this->list_state['after'])) {
+			$this->addCondition($this->list_setup_key_field, '>', $this->list_state['after']);
+		}
+		$payload = [
+			'data' => null,
+			'error' => null,
+			'list_state' => $this->list_state,
+			'status' => 'OK'
+		];
+		ksort($payload,SORT_NATURAL);
+		$payload['data'] = $this->format();
+		$this->res->status(200, 'OK')->rawJson($payload);
 	}
 }

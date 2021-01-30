@@ -9,6 +9,7 @@ use Firebase\JWT\ExpiredException;
 use Phalcon\Config;
 use Phalcon\Di;
 use Phalcon\Events\Manager;
+use Phalcon\Filter;
 use Phalcon\Http\Request;
 use Phalcon\Mvc\Micro;
 use Phalcon\Mvc\Router;
@@ -24,6 +25,9 @@ class App extends Micro
 		}
 		if ( !$di->has('request')) {
 			$di->set("request", Request::class, true);
+		}
+		if ( !$di->has('filter')) {
+			$di->set('filter', Filter::class, true);
 		}
 		if ( !$di->has('response')) {
 			$di->set("response", Response::class, true);
