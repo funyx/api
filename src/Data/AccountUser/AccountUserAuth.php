@@ -22,7 +22,11 @@ class AccountUserAuth extends AccountUser
 
 	public function register(): array
 	{
-		$this->save($this->body());
+		$this->save([
+			'username' => $this->body('username'),
+			'password' => $this->body('password'),
+			'email' => $this->body('email')
+		]);
 		return $this->publicUserData();
 	}
 
