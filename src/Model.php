@@ -32,11 +32,11 @@ class Model extends atkModel
 	 * @var array
 	 */
 	protected array $payload;
+	protected string $public_key_field;
 	protected int $list_setup_size = 10;
 	protected array $list_state = [];
 	protected array $list_setup_order = [];
 	protected array $list_setup_query_fields = [];
-	protected string $list_setup_key_field;
 
 	public function __construct( $persistence = null, $defaults = [] )
 	{
@@ -58,8 +58,8 @@ class Model extends atkModel
 			if (property_exists($this->req, 'data_map')) {
 				$this->data_map = $this->req->data_map;
 			}
-			if (empty($this->list_setup_key_field)) {
-				$this->list_setup_key_field = $this->id_field;
+			if (empty($this->public_key_field)) {
+				$this->public_key_field = $this->id_field;
 			}
 			$this->listSetupOrder();
 			$this->listSetup();
@@ -197,7 +197,7 @@ class Model extends atkModel
 			}
 		} else {
 			foreach ($this->getIterator() as $record) {
-				$data[$record->get($this->list_setup_key_field)] = $record->format();
+				$data[$record->get($this->public_key_field)] = $record->format();
 			}
 		}
 		ksort($data);
@@ -282,7 +282,7 @@ class Model extends atkModel
 			$this->setOrder($field, $order);
 		}
 		if (isset($this->list_state['after'])) {
-			$this->addCondition($this->list_setup_key_field, '>', $this->list_state['after']);
+			$this->addCondition($this->public_key_field, '>', $this->list_state['after']);
 		}
 		$payload = [
 			'data' => null,
