@@ -59,8 +59,8 @@ class AccountUserAuth extends AccountUser
 
 	public function getMe()
 	{
-		if($auth = $this->auth(true)){
-			return $auth['model']->publicUserData();
+		if($user = $this->auth(true)){
+			return $user->publicUserData();
 		}
 	}
 
