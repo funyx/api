@@ -6,6 +6,7 @@ namespace funyx\api;
 use atk4\data\Persistence;
 use atk4\dsql\ExecuteException;
 use Firebase\JWT\ExpiredException;
+use Firebase\JWT\SignatureInvalidException;
 use Phalcon\Config;
 use Phalcon\Di;
 use Phalcon\Events\Manager;
@@ -182,6 +183,10 @@ class App extends Micro
 				break;
 			case ExpiredException::class:
 				$error_data = ['auth' => 'Expired JWT Token'];
+				$this->getService('logger')->error('RES : '.json_encode($error_data));
+				break;
+			case SignatureInvalidException::class:
+				$error_data = ['auth' => 'JWT signature mismatch'];
 				$this->getService('logger')->error('RES : '.json_encode($error_data));
 				break;
 			case Exception::class:
