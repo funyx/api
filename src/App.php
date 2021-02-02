@@ -143,6 +143,7 @@ class App extends Micro
 
 	public function handleError( \Exception $e ): void
 	{
+		$error_code = $e->getCode();
 		switch (get_class($e)) {
 			case \Exception::class:
 				if (method_exists($e, 'getParams')) {
@@ -164,7 +165,7 @@ class App extends Micro
 						die();
 						break;
 				endswitch;
-				switch ($e->getCode()):
+				switch ($error_code):
 					case 404:
 						$this->getService('logger')->error('Not Found');
 						$this->response->notFound();
@@ -190,10 +191,10 @@ class App extends Micro
 				$this->getService('logger')->error('RES : '.json_encode($error_data));
 				break;
 			case Exception::class:
-				switch ($e->getCode()):
+				switch ($error_code):
 					case 401:
 						$error_data = [
-							'auth' => 'Unauthorized'
+							'auth' => $e->getMessage() ?? 'Unauthorized'
 						];
 						break;
 					default:
@@ -210,8 +211,11 @@ class App extends Micro
 				];
 				$this->getService('logger')->error('RES : '.json_encode($error_data));
 		}
-		if(!$this->response->isSent()){
-			$this->response->error($error_data);
+		if ( !$this->response->isSent()) {
+			if ($error_code === 0) {
+				$error_code = 500;
+			}
+			$this->response->error($error_data, $error_code);
 		}
 		die();
 	}

@@ -11,7 +11,6 @@ class Post extends Model
 	public $caption = 'Post';
 	public $title_field = 'content';
 	public array $data_map = [
-		'id',
 		'content',
 		'user'     => [
 			'username',
@@ -34,66 +33,58 @@ class Post extends Model
 
 	public function filterList(): void
 	{
-		parent::filterList();
+		parent::doFilterList();
+	}
+
+	public function getOne(): void
+	{
+		parent::doGetOne();
 	}
 
 	/**
-	 * @param array $data
-	 *
 	 * @return void
-	 * @throws \Atk4\Data\Exception
+	 * @throws \atk4\data\Exception
 	 * @throws \funyx\api\Exception
 	 */
-	public function createOne( array $data ): void
+	public function createOne(): void
 	{
 		if ($user = $this->auth(true)) {
-			parent::createOne($this->save([
-				'user_id' => $user->get('id'),
-				'content' => $this->body('content')
-			])->format());
+			$this->set('user_id', $user->get('id'));
+			$this->set('content', $this->body('content'));
+			parent::doCreateOne();
 		}
 	}
 
 	/**
-	 * @param array $data
-	 *
 	 * @return void
-	 * @throws \Atk4\Data\Exception
-	 */
-	public function getOne( array $data ): void
-	{
-		// status 200 ok
-		parent::getOne($this->load($this->param('id'))->format());
-	}
-
-	/**
-	 * @param array $data
-	 *
-	 * @return void
-	 * @throws \Atk4\Data\Exception
+	 * @throws \atk4\data\Exception
 	 * @throws \funyx\api\Exception
+	 * @throws \atk4\core\Exception
 	 */
-	public function updateOne( array $data ): void
+	public function updateOne(): void
 	{
 		if ($user = $this->auth(true)) {
-			parent::updateOne($this->load($this->param('id'))->save([
-				'user_id' => $user->get('id'),
-				'content' => $this->body('content')
-			])->format());
+			$this->addCondition('user_id', $user->get('id'));
+			$this->addCondition($this->public_key_field, $this->param('id'));
+			$this->loadAny();
+			$this->set('content', $this->body('content'));
+			parent::doUpdateOne();
 		}
 	}
 
 	/**
 	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/410
 	 *
-	 * @throws \Atk4\Data\Exception
+	 * @throws \atk4\data\Exception
 	 * @throws \funyx\api\Exception
 	 */
 	public function deleteOne(): void
 	{
 		if ($user = $this->auth(true)) {
-			$this->load($this->param('id'))->delete();
-			parent::deleteOne();
+			$this->addCondition('user_id', $user->get('id'));
+			$this->addCondition($this->public_key_field, $this->param('id'));
+			$this->loadAny();
+			parent::doDeleteOne();
 		}
 	}
 

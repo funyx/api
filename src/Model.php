@@ -53,13 +53,13 @@ class Model extends atkModel
 		if (get_class($this) === $class && !method_exists($this, $action)) {
 			throw new Exception(get_class($this).' has no action '.$action);
 		}
+		if (empty($this->public_key_field)) {
+			$this->public_key_field = $this->id_field;
+		}
 		if (get_class($this) === $class && method_exists($this, $action)) {
 			// check if the data_map is set by the request middleware
 			if (property_exists($this->req, 'data_map')) {
 				$this->data_map = $this->req->data_map;
-			}
-			if (empty($this->public_key_field)) {
-				$this->public_key_field = $this->id_field;
 			}
 			$this->listSetupOrder();
 			$this->listSetup();
@@ -155,6 +155,41 @@ class Model extends atkModel
 		]);
 	}
 
+	public function auth( $get_model = false )
+	{
+		if ($this->app->auth && $get_model) {
+			$m = $this->app->auth->getModel();
+			if ($m->loaded()) {
+				return $m;
+			}
+		} elseif ($this->app->auth && !$get_model) {
+			$d = $this->app->auth->getData();
+			if ( !empty($d)) {
+				return $d;
+			}
+		}
+		throw new Exception('Unauthorized', 401);
+	}
+
+	/**
+	 * @param string $key
+	 *
+	 * @return mixed
+	 */
+	public function body( string $key )
+	{
+		$body = $this->payload;
+		if (isset($body[$key])) {
+			return $body[$key];
+		}
+		return null;
+	}
+
+	public function doGetOne(): void
+	{
+		$this->res->status(200, 'OK')->json($this->loadBy($this->public_key_field, $this->param('id'))->format());
+	}
+
 	public function format(): array
 	{
 		$data = [];
@@ -204,22 +239,6 @@ class Model extends atkModel
 		return $data;
 	}
 
-	public function auth( $get_model = false )
-	{
-		if ($this->app->auth && $get_model) {
-			$m = $this->app->auth->getModel();
-			if ($m->loaded()) {
-				return $m;
-			}
-		} elseif ($this->app->auth && !$get_model) {
-			$d = $this->app->auth->getData();
-			if ( !empty($d)) {
-				return $d;
-			}
-		}
-		throw new Exception('Unauthorized', 401);
-	}
-
 	/**
 	 * @param string $name
 	 *
@@ -234,41 +253,23 @@ class Model extends atkModel
 		return null;
 	}
 
-	/**
-	 * @param string $key
-	 *
-	 * @return mixed
-	 */
-	public function body( string $key )
+	public function doDeleteOne(): void
 	{
-		$body = $this->payload;
-		if (isset($body[$key])) {
-			return $body[$key];
-		}
-		return null;
-	}
-
-	public function getOne( array $data ): void
-	{
-		$this->res->status(200, 'OK')->json($data);
-	}
-
-	public function deleteOne(): void
-	{
+		$this->delete();
 		$this->res->status(410, 'Gone');
 	}
 
-	public function createOne( array $data ): void
+	public function doCreateOne(): void
 	{
-		$this->res->status(201, 'Created')->json($data);
+		$this->res->status(201, 'Created')->json($this->save()->format());
 	}
 
-	public function updateOne( array $data ): void
+	public function doUpdateOne(): void
 	{
-		$this->res->status(200, 'OK')->json($data);
+		$this->res->status(200, 'OK')->json($this->save()->format());
 	}
 
-	public function filterList(): void
+	public function doFilterList(): void
 	{
 		$this->setLimit($this->list_state['size']);
 		if (isset($this->list_state['query'])) {
@@ -285,12 +286,12 @@ class Model extends atkModel
 			$this->addCondition($this->public_key_field, '>', $this->list_state['after']);
 		}
 		$payload = [
-			'data' => null,
-			'error' => null,
+			'data'       => null,
+			'error'      => null,
 			'list_state' => $this->list_state,
-			'status' => 'OK'
+			'status'     => 'OK'
 		];
-		ksort($payload,SORT_NATURAL);
+		ksort($payload, SORT_NATURAL);
 		$payload['data'] = $this->format();
 		$this->res->status(200, 'OK')->rawJson($payload);
 	}

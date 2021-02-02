@@ -8,7 +8,7 @@ use funyx\api\Data\Field\Password;
 use funyx\api\Data\AccountUser;
 use funyx\api\Exception;
 
-class AccountUserAuth extends AccountUser
+class   AccountUserAuth extends AccountUser
 {
 	protected function init(): void
 	{
@@ -35,7 +35,7 @@ class AccountUserAuth extends AccountUser
 		$req = $this->req->getJsonRawBody(true);
 		$this->tryLoadByUsernameAndPassword($this->body('username'),$this->body('password'));
 		if(!$this->loaded()){
-			throw new Exception('Wrong credentials');
+			throw new Exception('Wrong credentials', 401);
 		}
 		$user = $this->get();
 		$token = $this->generateJWT($user);

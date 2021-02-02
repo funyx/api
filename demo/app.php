@@ -4,6 +4,7 @@ use demo\api\Post;
 use funyx\api\App;
 use funyx\api\Data\AccountUser\AccountUserAuth;
 use funyx\api\Middleware\Authorization;
+use funyx\api\Middleware\CORSMiddleware;
 use funyx\api\Middleware\RequestMiddleware;
 use funyx\api\Middleware\ResponseMiddleware;
 
@@ -22,6 +23,10 @@ $app = new App([
 		'dsn' => 'sqlite:.personal_data/data.sqlite3'
 	],
 	'mws'           => [
+		[
+			CORSMiddleware::class,
+			'event' => 'before'
+		],
 		[
 			Authorization\JWT::class,
 			'event' => 'before'
